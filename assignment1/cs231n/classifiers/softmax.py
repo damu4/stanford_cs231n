@@ -29,7 +29,29 @@ def softmax_loss_naive(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  num_classes = W.shape[1]
+  num_train = X.shape[0]
+  
+  for i in range(num_train):
+      f = X[i].dot(W)
+      f_y = f[y[i]]
+      max_f = f.max()
+      f -= max_f
+      loss += -f_y + max_f + np.log(np.sum(np.exp(f)))
+    
+      for j in range(num_classes):
+            dW[:, j] += np.exp(f[j]) / np.sum(np.exp(f)) * X[i, :]
+    
+      dW[:, y[i]] -= X[i, :]
+        
+  # Right now the loss is a sum over all training examples, but we want it
+  # to be an average instead so we divide by num_train.
+  loss /= num_train
+  dW /= num_train
+
+  # Add regularization to the loss.
+  loss += reg * np.sum(W * W)
+  dW += 2 * reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
@@ -53,7 +75,27 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  num_classes = W.shape[1]
+  num_train = X.shape[0]
+  
+  f = X.dot(W)
+  f_y = f[range(num_train), y]
+  max_f = f.max(axis = 1, keepdims = True)
+  f -= max_f
+  loss += np.sum(-f_y) + np.sum(max_f) + np.sum(np.log(np.sum(np.exp(f), axis = 1)))
+    
+  dW = np.exp(f) / np.sum(np.exp(f), axis=1).reshape(-1, 1)
+  dW[range(num_train), y] -= 1
+  dW = X.T.dot(dW)
+       
+  # Right now the loss is a sum over all training examples, but we want it
+  # to be an average instead so we divide by num_train.
+  loss /= num_train
+  dW /= num_train
+
+  # Add regularization to the loss.
+  loss += reg * np.sum(W * W)
+  dW += 2 * reg * W
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
